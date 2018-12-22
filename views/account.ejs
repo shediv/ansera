@@ -1,0 +1,25 @@
+<p>
+  <a href="/logout">Logout</a>
+</p>
+<p>Hello <%= user.displayName %>! We are glad to have you onboard.</p>
+<h4>Your details are : </h4>
+<p>ID: <%= user.userId %></p>
+<p>Name: <%= user.displayName %></p>
+<p>Email Adress: <%= user.email %></p>
+<p>Reputation Score:<%= user.reputation %></p>
+<br>
+<b>Badge Counts</b>
+<span>
+  <p>Bronze : <%= user.badges.bronze %></p>
+  <p>Silver : <%= user.badges.silver %></p>
+  <p>Gold : <%= user.badges.gold %></p>
+</span>
+<p>Profile Page: <%= user.profileUrl %></p>
+<p>
+  Profile Picture:<br>
+  <% if (user.photos) { %>
+  <img src="<%= user.photos[0] %>">
+  <% } else { %>
+  Profile picture not exists.
+  <% } %>
+</p>

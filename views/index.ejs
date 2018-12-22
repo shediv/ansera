@@ -1,0 +1,31 @@
+<% if (!user) { %>
+  <h2>
+    <center>Login</center>
+  </h2>
+
+  <form class="form-horizontal" action="/login" method="post">
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-8">
+        <a href="/auth/stack-exchange">
+          <img src="se-logo.png">
+        </a>
+      </div>
+    </div>
+  </form>
+<% } else { %>
+<h2>Hello, <%= user.displayName %>. One last step before we get you onboard</h2>
+<!--<p>-->
+  <!--<a href="/account">Go to account page.</a>-->
+<!--</p>-->
+<form name="form1" method="POST" action="/account">
+  <table>
+    <tr>
+      <td>Email Address</td>
+      <td><input type="email" name="email"></td>
+    </tr>
+    <tr>
+      <td colspan="2"><input type="submit" value="Done" ></td>
+    </tr>
+  </table>
+</form>
+<% } %>
