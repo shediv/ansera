@@ -16,6 +16,7 @@ var userSchema = new mongoose.Schema({
     profileUrl: String,
     isActive: Boolean,
     badges: Object,
+    tags: Object,
     reputation: Number
 });
 

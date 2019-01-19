@@ -24,6 +24,8 @@ var STACK_EXCHANGE_APP_ID = '13021', // '*** YOUR APP ID (CLIENT ID) ***',
     STACK_EXCHANGE_APP_SECRET = 'MJY3DZowYEiuKYFJ4HJePA((', //'*** YOUR APP SECRET (CLIENT SECRET) ***',
     STACK_EXCHANGE_APP_KEY = 'gUtsEyt6yj5O)MX*)Xs1Gw((';
 
+//Route File
+var routes = require('./routes/index');
 
 /**
  * Passport session setup
@@ -136,86 +138,77 @@ app.get('/api/profile', function(req, res){
     })
 });
 
-// app.post('/account', ensureAuthenticated, function(req, res){
-//     //res.render('account', { user: req.user });
-//     var user = req.user;
-//     var requestOptions,
-//         requestCall,
-//         wiki,
-//         buffer,
-//         gunzip;
-
-//     requestOptions = {
-//         url: 'http://api.stackexchange.com/2.2/users/'+req.user.id+'?order=desc&sort=reputation&site=stackoverflow'
-//     };
-//     requestCall = request(requestOptions);
-
-//     requestCall.on('response', function (wikiRequest) {
-//         if (wikiRequest.statusCode === 200) {
-//             buffer = [];
-//             gunzip = zlib.createGunzip();
-//             wikiRequest.pipe(gunzip);
-//             gunzip.on('data', function (data) {
-//                 // decompression chunk ready, add it to the buffer
-//                 buffer.push(data.toString());
-//             }).on("end", function () {
-//                 // response and decompression complete, join the buffer and return
-//                 wiki = JSON.parse(buffer.join(''));
-//                 //console.log(" wiki = ", wiki);
-//                 req.user.details = wiki.items[0];
-//                 req.user.email = req.body.email;
-//                 return res.render('account', { user: req.user });
-//             })
-//         }
-//     })
-
-// });
+app.use('/api/account', routes);
 
 app.post('/account', function(req, res){
-    console.log("account2 =========");
     var data  = JSON.parse(req.user._raw);
-    User.findOne({email: req.body.email, isActive : 1},function(err, result){
-        if(result){
-            //return res.status(403).json({message: "User Already registered"})
-            var user = {
-                userId : req.user.id,
-                accountId : req.user.accountId,
-                displayName : req.user.displayName,
-                profileUrl : req.user.profileUrl,
-                createdAt : new Date(),
-                updatedAt : new Date(),
-                badges : data.items[0].badge_counts,
-                reputation : data.items[0].reputation,
-                email : req.body.email
-            };
-            console.log("User Already registered");
-            // return res.render('account', { user: user });
-            res.redirect('/');
-        }
-        else{
-            var newUser = new User();
-            newUser.userId = req.user.id;
-            newUser.accountId = req.user.accountId;
-            newUser.displayName = req.user.displayName;
-            newUser.profileUrl = req.user.profileUrl;
-            newUser.createdAt = new Date();
-            newUser.updatedAt = new Date();
-            newUser.badges = data.items[0].badge_counts;
-            newUser.reputation = data.items[0].reputation;
-            newUser.email = req.body.email;
-            newUser.isActive = true;
-            newUser.save(function(err) {
-                // return res.render('account', { user: newUser });
-                console.log("User registered");
-                res.redirect('/');
-            });
+    //Get user tags
+    var requestOptions,
+        requestCall,
+        tagsData,
+        buffer,
+        gunzip;
+
+    requestOptions = {
+        url: 'https://api.stackexchange.com//2.2/users/'+req.user.id+'/tags?order=desc&sort=popular&site=stackoverflow'
+    };
+    requestCall = request(requestOptions);
+
+    requestCall.on('response', function (wikiRequest) {
+        if (wikiRequest.statusCode === 200) {
+            buffer = [];
+            gunzip = zlib.createGunzip();
+            wikiRequest.pipe(gunzip);
+            gunzip.on('data', function (data) {
+                // decompression chunk ready, add it to the buffer
+                buffer.push(data.toString());
+            }).on("end", function () {
+                // response and decompression complete, join the buffer and return
+                tagsData = JSON.parse(buffer.join(''));
+                User.findOne({email: req.body.email, isActive : 1},function(err, result){
+                    if(result){
+                        //return res.status(403).json({message: "User Already registered"})
+                        var user = {
+                            userId : req.user.id,
+                            accountId : req.user.accountId,
+                            displayName : req.user.displayName,
+                            profileUrl : req.user.profileUrl,
+                            createdAt : new Date(),
+                            updatedAt : new Date(),
+                            badges : data.items[0].badge_counts,
+                            reputation : data.items[0].reputation,
+                            tags: tagsData.items,
+                            email : req.body.email
+                        };
+                        console.log("User Already registered");
+                        // return res.render('account', { user: user });
+                        res.redirect('/');
+                    }
+                    else{
+                        var newUser = new User();
+                        newUser.userId = req.user.id;
+                        newUser.accountId = req.user.accountId;
+                        newUser.displayName = req.user.displayName;
+                        newUser.profileUrl = req.user.profileUrl;
+                        newUser.createdAt = new Date();
+                        newUser.updatedAt = new Date();
+                        newUser.badges = data.items[0].badge_counts;
+                        newUser.reputation = data.items[0].reputation;
+                        newUser.email = req.body.email;
+                        newUser.tags = tagsData.items;
+                        newUser.isActive = true;
+                        newUser.save(function(err) {
+                            // return res.render('account', { user: newUser });
+                            console.log("User registered");
+                            res.redirect('/');
+                        });
+                    }
+                })
+            })
         }
     })
-});
 
-// app.get('/login', function(req, res){
-//     res.render('login', { user: req.user });
-// });
+});
 
 app.get('/auth/stack-exchange',
     passport.authenticate('stack-exchange'));
